@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OF 1st Purchase — Email #16+ Performance</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0a0a0f; --panel:#0e0c1a; --panel2:#12101e;
+    --line:#1e1c2e; --line2:#2a2540;
+    --ink:#e8e6f0; --ink2:#c4beea; --mut:#8a8599; --mut2:#6b647e; --dim:#5a4fa0;
+    --p:#7c68e0; --t:#1a9e78; --a:#c48a1a; --c:#c45a30; --b:#3a78c9;
+    --o15:#7c68e0; --o25:#e0a03a;
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .report{max-width:1080px;margin:0 auto;padding:44px 28px 90px}
+
+  .header{margin-bottom:34px;border-bottom:1px solid var(--line);padding-bottom:28px}
+  .eyebrow{font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--p);margin-bottom:12px}
+  h1{font-size:36px;font-weight:600;color:#f0eeff;letter-spacing:-.022em;line-height:1.12;margin-bottom:12px}
+  .subtitle{color:var(--mut);font-size:15px}
+  .meta{display:flex;flex-wrap:wrap;gap:22px;margin-top:18px}
+  .meta-item{font-size:13px;color:var(--mut)}
+  .meta-item strong{color:var(--ink2);font-weight:500}
+
+  /* controls */
+  .controls{position:sticky;top:0;z-index:40;background:rgba(10,10,15,.93);backdrop-filter:blur(14px);
+    border:.5px solid var(--line2);border-radius:14px;padding:14px 16px;margin-bottom:30px;
+    display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end}
+  .ctl-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:7px;display:block}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{font-family:inherit;font-size:12.5px;font-weight:500;background:#16142a;color:var(--mut);
+    border:.5px solid var(--line2);border-radius:100px;padding:5px 13px;cursor:pointer;transition:all .16s}
+  .chip:hover{color:var(--ink2);border-color:#3a3260}
+  .chip[aria-pressed="true"]{background:var(--p);color:#fff;border-color:var(--p)}
+  .chip:focus-visible{outline:2px solid var(--p);outline-offset:2px}
+  .chip.o15[aria-pressed="true"]{background:var(--o15);border-color:var(--o15)}
+  .chip.o25[aria-pressed="true"]{background:var(--o25);border-color:var(--o25);color:#1a1608}
+  .ctl-note{font-size:11.5px;color:var(--mut2);margin-left:auto;max-width:240px;line-height:1.45}
+
+  /* kpis */
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px}
+  .kpi{background:var(--panel2);border:.5px solid var(--line2);border-radius:11px;padding:15px 14px}
+  .kpi-l{font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);margin-bottom:7px;line-height:1.3;min-height:26px}
+  .kpi-v{font-size:23px;font-weight:600;color:#f0eeff;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .kpi-s{font-size:11.5px;color:var(--mut2);margin-top:5px;font-variant-numeric:tabular-nums}
+
+  .section{margin-bottom:52px}
+  .section-label{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+  h2{font-size:21px;font-weight:600;color:#f0eeff;letter-spacing:-.01em;margin-bottom:16px;padding-bottom:11px;border-bottom:1px solid #1a1828}
+  h3{font-size:15px;font-weight:500;color:var(--ink2);margin-bottom:10px}
+  p{color:#a09ab8;margin-bottom:11px}
+  p strong{color:#d0cbf0;font-weight:500}
+  .divider{border:none;border-top:1px solid #14121f;margin:36px 0}
+
+  /* funnel */
+  .funnel{background:var(--panel);border:.5px solid var(--line);border-radius:13px;padding:24px 26px}
+  .fstep{display:grid;grid-template-columns:132px 1fr 152px;gap:16px;align-items:center;padding:9px 0}
+  .fname{font-size:12.5px;color:var(--ink2);font-weight:500}
+  .fname span{display:block;font-size:10.5px;color:var(--mut2);font-weight:400}
+  .ftrack{background:#141227;border-radius:5px;height:26px;overflow:hidden;position:relative}
+  .fbar{height:100%;border-radius:5px;transition:width .5s cubic-bezier(.4,0,.2,1);min-width:2px}
+  .fval{text-align:right;font-variant-numeric:tabular-nums}
+  .fnum{font-size:15px;font-weight:600;color:#f0eeff}
+  .fpct{font-size:11.5px;color:var(--mut2)}
+  .fdrop{grid-column:2;font-size:10.5px;color:var(--mut2);padding:0 0 3px 2px;letter-spacing:.02em}
+
+  /* charts */
+  .chart-wrap{background:var(--panel);border:.5px solid var(--line);border-radius:13px;padding:22px 24px;margin-bottom:16px}
+  .chart-title{font-size:13px;font-weight:500;color:var(--ink2);margin-bottom:4px}
+  .chart-sub{font-size:11.5px;color:var(--mut2);margin-bottom:18px}
+  .chart-inner{position:relative;width:100%}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:14px}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#8a84a4}
+  .legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+
+  /* verdict */
+  .verdict{background:linear-gradient(180deg,#12101e 0%,#0e0c1a 100%);border:.5px solid var(--line2);border-left:3px solid var(--o25);border-radius:0 13px 13px 0;padding:22px 24px;margin-bottom:16px}
+  .verdict h3{font-size:17px;color:#f0eeff;font-weight:600;margin-bottom:8px}
+  .vgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:18px}
+  .vcell{background:#0c0a16;border:.5px solid var(--line);border-radius:9px;padding:13px 12px}
+  .vmkt{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+  .vlift{font-size:19px;font-weight:600;color:var(--t);line-height:1;font-variant-numeric:tabular-nums}
+  .vlift.neg{color:var(--c)}
+  .vsub{font-size:11px;color:var(--mut2);margin-top:5px;font-variant-numeric:tabular-nums}
+  .vp{font-size:10.5px;margin-top:4px;font-variant-numeric:tabular-nums}
+  .sig{color:var(--t)} .nsig{color:var(--a)}
+
+  /* table */
+  .tablewrap{background:var(--panel);border:.5px solid var(--line);border-radius:13px;overflow:hidden}
+  .tscroll{overflow-x:auto;max-height:560px;overflow-y:auto}
+  table{border-collapse:collapse;width:100%;font-size:12.5px;font-variant-numeric:tabular-nums}
+  thead th{position:sticky;top:0;background:#141227;color:var(--ink2);font-weight:500;font-size:10.5px;
+    letter-spacing:.07em;text-transform:uppercase;text-align:right;padding:11px 10px;border-bottom:1px solid var(--line2);
+    cursor:pointer;white-space:nowrap;user-select:none;z-index:2}
+  thead th:first-child,thead th:nth-child(2),thead th:nth-child(3),thead th:nth-child(4){text-align:left}
+  thead th:hover{color:#fff}
+  thead th[data-dir]::after{content:'';margin-left:5px;opacity:.9}
+  thead th[data-dir="asc"]::after{content:'\2191'}
+  thead th[data-dir="desc"]::after{content:'\2193'}
+  tbody td{padding:9px 10px;text-align:right;border-bottom:.5px solid #16142a;color:#a09ab8;white-space:nowrap}
+  tbody td:first-child,tbody td:nth-child(2),tbody td:nth-child(3),tbody td:nth-child(4){text-align:left}
+  tbody tr:hover td{background:#12101e;color:var(--ink)}
+  .pill{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:100px;letter-spacing:.02em}
+  .pill.p15{background:rgba(124,104,224,.16);color:#a595ee}
+  .pill.p25{background:rgba(224,160,58,.16);color:#e0a03a}
+  .pill.mkt{background:#16142a;color:#8a84a4}
+  .tfoot{padding:11px 14px;border-top:1px solid var(--line2);font-size:11.5px;color:var(--mut2);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;background:#0c0a16}
+  .short-tag{font-size:10px;color:var(--mut2);letter-spacing:.06em}
+
+  .notes{background:var(--panel);border:.5px solid var(--line);border-radius:13px;padding:20px 24px}
+  .notes ul{margin:0;padding-left:19px}
+  .notes li{color:#9a94b2;font-size:13px;margin-bottom:9px;line-height:1.55}
+  .notes li:last-child{margin-bottom:0}
+  .notes strong{color:#d0cbf0;font-weight:500}
+  .empty{padding:44px;text-align:center;color:var(--mut2);font-size:13px}
+
+  @media (max-width:900px){
+    .kpis{grid-template-columns:repeat(3,1fr)}
+    .vgrid{grid-template-columns:repeat(2,1fr)}
+    .fstep{grid-template-columns:100px 1fr 108px;gap:10px}
+    .ctl-note{display:none}
+  }
+  @media (max-width:600px){
+    .report{padding:30px 16px 70px}
+    h1{font-size:28px}
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .controls{position:static}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="report">
+
+  <div class="header">
+    <div class="eyebrow">Tasty Dose &middot; Klaviyo flow analytics</div>
+    <h1>Order Fulfilled &mdash; 1st Purchase<br>Email #16 onwards</h1>
+    <div class="subtitle">Offer test: 15% off vs 25% off &middot; last 30 days</div>
+    <div class="meta">
+      <div class="meta-item"><strong>Markets:</strong> DACH, HU, NL, CZ</div>
+      <div class="meta-item"><strong>Emails:</strong> #16&ndash;#27 (112 sends)</div>
+      <div class="meta-item"><strong>Conversion metric:</strong> Placed Order (Shopify)</div>
+      <div class="meta-item"><strong>Pulled:</strong> 14 Aug 2026</div>
+    </div>
+  </div>
+
+  <div class="controls" role="group" aria-label="Report filters">
+    <div>
+      <span class="ctl-label" id="lbl-mkt">Market</span>
+      <div class="chips" id="f-mkt" role="group" aria-labelledby="lbl-mkt"></div>
+    </div>
+    <div>
+      <span class="ctl-label" id="lbl-off">Offer arm</span>
+      <div class="chips" id="f-off" role="group" aria-labelledby="lbl-off"></div>
+    </div>
+    <div>
+      <span class="ctl-label" id="lbl-fmt">Format</span>
+      <div class="chips" id="f-fmt" role="group" aria-labelledby="lbl-fmt"></div>
+    </div>
+    <div class="ctl-note">Set Format to <strong>Standard only</strong> for a like-for-like arm comparison &mdash; SHORT variants exist only on the 15% side.</div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="section" style="margin-top:34px">
+    <div class="section-label">Funnel</div>
+    <h2>Delivered to placed order</h2>
+    <div class="funnel" id="funnel"></div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section">
+    <div class="section-label">Offer test</div>
+    <h2>15% off vs 25% off</h2>
+    <div class="verdict">
+      <h3 id="v-head">25% off wins on placed orders in every market</h3>
+      <p id="v-body" style="margin-bottom:0"></p>
+      <div class="vgrid" id="v-grid"></div>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">Placed order rate by arm</div>
+      <div class="chart-sub">Orders &divide; delivered. Standard-format sends only, so both arms are compared on the same creative.</div>
+      <div class="legend">
+        <div class="legend-item"><span class="legend-dot" style="background:#7c68e0"></span>15% off</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#e0a03a"></span>25% off</div>
+      </div>
+      <div class="chart-inner" style="height:250px"><canvas id="c-arm" role="img" aria-label="Placed order rate by offer arm and market"></canvas></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section">
+    <div class="section-label">Sequence decay</div>
+    <h2>Performance by email position</h2>
+    <div class="chart-wrap">
+      <div class="chart-title">Open rate and placed order rate, #16 &rarr; #27</div>
+      <div class="chart-sub">Reflects the current filter. Bars are placed order rate; the line is open rate.</div>
+      <div class="chart-inner" style="height:290px"><canvas id="c-seq" role="img" aria-label="Open rate and placed order rate by email position"></canvas></div>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">Unique recipients by email position</div>
+      <div class="chart-sub">Shows how far down the sequence the audience actually reaches.</div>
+      <div class="chart-inner" style="height:220px"><canvas id="c-rec" role="img" aria-label="Unique recipients by email position"></canvas></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section">
+    <div class="section-label">Detail</div>
+    <h2>Every send</h2>
+    <div class="tablewrap">
+      <div class="tscroll">
+        <table id="tbl">
+          <thead><tr>
+            <th data-k="0">Market</th><th data-k="1">Email</th><th data-k="2">Offer</th><th data-k="3">Format</th>
+            <th data-k="4">Recipients</th><th data-k="6">Opens</th><th data-k="o">Open rate</th>
+            <th data-k="7">Clicks</th><th data-k="cr">Click rate</th>
+            <th data-k="8">Sessions</th><th data-k="9">Orders</th><th data-k="pr">Order rate</th>
+            <th data-k="11">Revenue</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="tfoot"><span id="tcount"></span><span>Click any header to sort</span></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section">
+    <div class="section-label">Reading this</div>
+    <h2>Method and caveats</h2>
+    <div class="notes">
+      <ul>
+        <li><strong>Rates use delivered, not sent</strong> &mdash; open rate, click rate and placed order rate are all divided by delivered, matching how Klaviyo reports them. Recipients are shown separately.</li>
+        <li><strong>Opens and clicks are unique</strong> &mdash; one profile counted once per email, not raw event totals.</li>
+        <li><strong>Sessions started is a proxy.</strong> Klaviyo has no native session metric on flows. This column is unique profiles who fired <strong>Active on Site</strong> inside the attribution window after the send. Treat it as directional, and expect it to run close to unique clicks.</li>
+        <li><strong>Placed orders</strong> are attributed conversions on the Shopify Placed Order metric. Order rate is orders &divide; delivered; the buyer count (unique converters) is lower where one profile ordered twice.</li>
+        <li><strong>The 15% arm carries extra SHORT-format sends</strong> in DACH and HU that the 25% arm does not have. The headline verdict and the arm chart use Standard-format sends only so the arms are comparable; the Format filter lets you see it either way.</li>
+        <li><strong>Revenue is post-discount order value</strong> as recorded by Shopify. It is not margin &mdash; the extra 10 points of discount on the 25% arm still has to be paid for out of gross margin, so run this through the contribution margin model before treating 25% as the winner commercially.</li>
+        <li><strong>Apple Mail Privacy Protection inflates open rates</strong> unevenly across markets. Click and order rates are the reliable comparison.</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+<script>
+const RAW =
+[["CZ",16,"15% off","Standard",4039,4038,703,112,114,15,15,991.66,7],["CZ",16,"25% off","Standard",3922,3922,706,117,104,18,18,1390.87,8],["CZ",17,"15% off","Standard",4095,4095,725,33,37,11,11,895.51,5],["CZ",17,"25% off","Standard",3989,3989,716,54,49,8,8,482.83,8],["CZ",18,"15% off","Standard",3946,3946,669,57,59,5,5,513.02,6],["CZ",18,"25% off","Standard",3844,3843,642,34,39,8,8,570.22,7],["CZ",19,"15% off","Standard",3776,3776,672,36,38,7,7,530.78,8],["CZ",19,"25% off","Standard",3687,3683,641,32,34,10,10,886.15,15],["CZ",20,"15% off","Standard",3721,3720,650,34,39,6,6,427.85,12],["CZ",20,"25% off","Standard",3632,3629,608,28,31,10,10,627.29,5],["CZ",21,"15% off","Standard",3674,3672,547,11,24,4,4,389.53,8],["CZ",21,"25% off","Standard",3575,3574,495,13,18,8,8,802.38,9],["CZ",22,"15% off","Standard",3685,3684,583,28,40,9,9,760.49,5],["CZ",22,"25% off","Standard",3539,3539,556,32,26,13,13,965.37,5],["CZ",23,"15% off","Standard",3804,3804,558,29,30,10,10,769.01,15],["CZ",23,"25% off","Standard",3637,3637,514,34,34,10,10,697.64,7],["CZ",24,"15% off","Standard",3429,3428,557,24,20,4,4,271.51,6],["CZ",24,"25% off","Standard",3285,3283,510,14,24,6,6,368.59,7],["CZ",25,"15% off","Standard",3390,3389,525,22,27,6,6,556.56,8],["CZ",25,"25% off","Standard",3271,3270,499,29,36,12,12,786.19,10],["CZ",26,"15% off","Standard",3437,3436,464,28,29,2,2,135.15,1],["CZ",26,"25% off","Standard",3341,3338,393,26,22,5,5,277.39,4],["CZ",27,"15% off","Standard",3621,3621,456,35,34,12,12,770.26,3],["CZ",27,"25% off","Standard",3533,3531,444,39,36,15,15,956.77,3],["DACH",16,"15% off","SHORT",2943,2936,661,80,76,10,10,986.76,11],["DACH",16,"15% off","Standard",4681,4672,1010,136,129,12,12,1183.1,15],["DACH",16,"25% off","Standard",4961,4944,1043,147,142,27,27,2403.19,28],["DACH",17,"15% off","SHORT",2728,2724,581,34,30,4,4,420.05,14],["DACH",17,"15% off","Standard",4778,4769,966,65,58,15,15,1130.1,13],["DACH",17,"25% off","Standard",5026,5010,996,79,67,24,24,2190.64,18],["DACH",18,"15% off","SHORT",2648,2641,563,36,45,2,2,175.0,7],["DACH",18,"15% off","Standard",4693,4684,927,61,65,10,10,1002.8,21],["DACH",18,"25% off","Standard",4950,4936,969,61,64,21,21,1829.64,16],["DACH",19,"15% off","SHORT",2226,2216,521,20,30,7,7,463.7,9],["DACH",19,"15% off","Standard",4908,4895,1116,60,68,15,15,1444.39,21],["DACH",19,"25% off","Standard",5184,5167,1169,55,67,17,17,1404.1,22],["DACH",20,"15% off","SHORT",1943,1939,410,15,17,2,2,249.1,6],["DACH",20,"15% off","Standard",4984,4970,952,38,47,10,10,1096.9,24],["DACH",20,"25% off","Standard",5224,5209,971,46,48,4,4,413.45,19],["DACH",21,"15% off","SHORT",1477,1474,287,8,12,2,2,39.4,3],["DACH",21,"15% off","Standard",4664,4653,794,12,27,5,5,433.8,22],["DACH",21,"25% off","Standard",4887,4872,873,23,30,6,6,527.27,16],["DACH",22,"15% off","SHORT",1254,1253,248,13,13,5,5,472.24,5],["DACH",22,"15% off","Standard",4706,4695,798,29,31,8,8,721.42,12],["DACH",22,"25% off","Standard",4951,4934,895,56,54,27,27,2704.67,11],["DACH",23,"15% off","SHORT",1037,1035,186,9,9,2,2,108.7,2],["DACH",23,"15% off","Standard",5028,5019,939,37,46,15,15,1411.25,22],["DACH",23,"25% off","Standard",5282,5268,953,39,46,15,15,1489.8,13],["DACH",24,"15% off","Standard",4954,4940,962,25,28,7,7,657.96,22],["DACH",24,"25% off","Standard",5081,5062,948,36,38,15,15,950.5,22],["DACH",25,"15% off","Standard",5011,4998,917,48,49,18,18,1748.63,22],["DACH",25,"25% off","Standard",5154,5131,919,52,54,18,18,1550.88,19],["DACH",26,"15% off","Standard",5186,5168,814,40,37,10,10,958.34,17],["DACH",26,"25% off","Standard",5301,5280,770,45,46,18,18,1245.61,15],["DACH",27,"15% off","Standard",4666,4655,984,79,73,25,25,1866.37,35],["DACH",27,"25% off","Standard",4738,4714,903,62,52,15,15,1210.26,33],["HU",16,"15% off","SHORT",1889,1889,558,74,74,3,3,259.2,10],["HU",16,"15% off","Standard",3610,3609,1002,146,137,16,16,1190.8,12],["HU",16,"25% off","Standard",3471,3471,941,118,114,15,15,1193.16,9],["HU",17,"15% off","SHORT",1746,1746,514,15,19,2,2,132.26,5],["HU",17,"15% off","Standard",3672,3672,988,47,53,8,8,558.61,16],["HU",17,"25% off","Standard",3515,3513,925,64,60,14,14,1201.0,18],["HU",18,"15% off","SHORT",1600,1600,636,50,59,11,11,697.06,9],["HU",18,"15% off","Standard",3530,3528,1324,103,133,14,14,1068.76,9],["HU",18,"25% off","Standard",3378,3374,1318,101,148,28,28,2364.51,10],["HU",19,"15% off","SHORT",1360,1359,415,9,23,2,2,153.24,2],["HU",19,"15% off","Standard",3440,3438,944,41,52,6,6,355.81,13],["HU",19,"25% off","Standard",3260,3258,920,30,41,6,6,732.29,19],["HU",20,"15% off","SHORT",1212,1212,353,14,19,3,3,289.17,2],["HU",20,"15% off","Standard",3452,3450,948,38,44,5,5,565.92,21],["HU",20,"25% off","Standard",3249,3249,902,49,58,6,6,298.78,22],["HU",21,"15% off","SHORT",866,865,227,2,4,0,0,0.0,4],["HU",21,"15% off","Standard",3420,3419,798,15,32,6,6,387.28,18],["HU",21,"25% off","Standard",3258,3257,733,6,17,3,3,228.82,16],["HU",22,"15% off","SHORT",697,697,180,8,9,3,3,210.97,1],["HU",22,"15% off","Standard",3543,3542,830,30,40,13,13,1139.85,6],["HU",22,"25% off","Standard",3388,3387,761,33,39,12,12,852.43,10],["HU",23,"15% off","SHORT",521,521,134,1,4,0,0,0.0,0],["HU",23,"15% off","Standard",3661,3661,880,31,43,7,7,634.75,18],["HU",23,"25% off","Standard",3508,3508,819,37,46,14,13,1133.27,16],["HU",24,"15% off","Standard",3468,3466,874,36,53,7,7,760.37,12],["HU",24,"25% off","Standard",3294,3292,853,35,44,9,9,649.38,8],["HU",25,"15% off","Standard",3480,3478,828,40,44,13,13,893.16,23],["HU",25,"25% off","Standard",3337,3335,816,42,40,15,15,1171.91,16],["HU",26,"15% off","Standard",3440,3439,791,36,49,14,14,1074.83,13],["HU",26,"25% off","Standard",3422,3420,788,27,28,7,7,392.31,10],["HU",27,"15% off","Standard",3520,3518,808,49,50,7,7,555.33,7],["HU",27,"25% off","Standard",3502,3500,821,50,51,10,10,769.64,8],["NL",16,"15% off","Standard",1304,1295,382,44,44,3,3,320.9,6],["NL",16,"25% off","Standard",1219,1217,358,40,40,5,5,311.52,3],["NL",17,"15% off","Standard",1369,1361,432,22,26,4,4,284.26,5],["NL",17,"25% off","Standard",1272,1271,388,27,25,8,8,640.5,7],["NL",18,"15% off","Standard",1355,1346,538,36,41,10,10,796.0,5],["NL",18,"25% off","Standard",1248,1248,465,39,45,14,14,1334.6,7],["NL",19,"15% off","Standard",1225,1216,411,16,21,2,2,80.8,7],["NL",19,"25% off","Standard",1118,1116,362,19,18,5,5,430.06,11],["NL",20,"15% off","Standard",1169,1160,353,19,15,2,2,179.0,8],["NL",20,"25% off","Standard",1063,1062,321,13,13,4,4,284.5,8],["NL",21,"15% off","Standard",1104,1097,286,3,7,3,3,282.6,3],["NL",21,"25% off","Standard",1012,1009,261,3,2,2,2,209.26,7],["NL",22,"15% off","Standard",1044,1039,266,5,8,5,5,346.0,3],["NL",22,"25% off","Standard",1012,1011,240,13,13,7,7,672.4,3],["NL",23,"15% off","Standard",1065,1062,285,8,9,3,3,392.9,6],["NL",23,"25% off","Standard",1033,1032,248,8,10,1,1,119.6,3],["NL",24,"15% off","Standard",584,582,168,5,4,2,2,101.14,4],["NL",24,"25% off","Standard",594,592,137,2,3,0,0,0.0,2],["NL",25,"15% off","Standard",563,561,165,3,3,0,0,0.0,1],["NL",25,"25% off","Standard",570,569,139,2,3,2,2,239.2,1],["NL",26,"15% off","Standard",875,872,214,1,3,1,1,76.3,3],["NL",26,"25% off","Standard",863,863,199,6,7,3,3,291.58,3],["NL",27,"15% off","Standard",999,995,226,8,6,2,2,151.7,3],["NL",27,"25% off","Standard",973,973,208,5,5,2,2,120.64,3]];
+// column order: 0 market,1 email,2 offer,3 fmt,4 recipients,5 delivered,6 opens,7 clicks,8 sessions,9 orders,10 buyers,11 revenue,12 unsubs
+const MKTS=['DACH','HU','NL','CZ'];
+const MC={DACH:'#7c68e0',HU:'#c45a30',NL:'#1a9e78',CZ:'#c48a1a'};
+const O15='#7c68e0', O25='#e0a03a';
+const state={mkt:'Blended',off:'All',fmt:'All',sort:{k:'pr',dir:'desc'}};
+
+const nf=n=>n.toLocaleString('en-US');
+const pc=(x,d)=>(x*100).toFixed(d===undefined?2:d)+'%';
+const eur=n=>'\u20ac'+Math.round(n).toLocaleString('en-US');
+
+function filtered(){
+  return RAW.filter(r=>
+    (state.mkt==='Blended'||r[0]===state.mkt) &&
+    (state.off==='All'||r[2]===state.off) &&
+    (state.fmt==='All'||r[3]===state.fmt));
+}
+function sum(rs){
+  const t={rec:0,del:0,op:0,cl:0,se:0,or:0,bu:0,rev:0,un:0};
+  rs.forEach(r=>{t.rec+=r[4];t.del+=r[5];t.op+=r[6];t.cl+=r[7];t.se+=r[8];t.or+=r[9];t.bu+=r[10];t.rev+=r[11];t.un+=r[12]});
+  const d=t.del||1;
+  t.oR=t.op/d; t.cR=t.cl/d; t.pR=t.or/d;
+  t.ctor=t.op?t.cl/t.op:0; t.clSe=t.cl?t.se/t.cl:0; t.seOr=t.se?t.or/t.se:0;
+  t.aov=t.or?t.rev/t.or:0; t.rpr=t.rec?t.rev/t.rec:0;
+  return t;
+}
+// two-proportion z-test
+function ztest(x1,n1,x2,n2){
+  if(!n1||!n2) return null;
+  const p1=x1/n1,p2=x2/n2,p=(x1+x2)/(n1+n2);
+  const se=Math.sqrt(p*(1-p)*(1/n1+1/n2));
+  if(!se) return null;
+  const z=(p2-p1)/se;
+  const t=1/(1+0.2316419*Math.abs(z));
+  const dn=0.3989423*Math.exp(-z*z/2);
+  let pv=dn*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));
+  return {z:z, p:2*pv, lift:p1?(p2/p1-1):0, r1:p1, r2:p2};
+}
+
+/* ---------- controls ---------- */
+function chips(el,vals,key,cls){
+  el.innerHTML='';
+  vals.forEach(v=>{
+    const b=document.createElement('button');
+    b.className='chip'+(cls&&cls[v]?' '+cls[v]:'');
+    b.type='button'; b.textContent=v;
+    b.setAttribute('aria-pressed', state[key]===v);
+    b.onclick=()=>{state[key]=v; render();};
+    el.appendChild(b);
+  });
+}
+function syncChips(){
+  [['f-mkt','mkt'],['f-off','off'],['f-fmt','fmt']].forEach(([id,k])=>{
+    document.getElementById(id).querySelectorAll('.chip').forEach(b=>
+      b.setAttribute('aria-pressed', b.textContent===state[k]));
+  });
+}
+
+/* ---------- KPIs ---------- */
+function renderKpis(t){
+  const cards=[
+    ['Unique recipients',nf(t.rec),nf(t.del)+' delivered'],
+    ['Unique opens',nf(t.op),pc(t.oR)+' open rate'],
+    ['Unique clicks',nf(t.cl),pc(t.cR,3)+' click rate'],
+    ['Sessions started',nf(t.se),pc(t.clSe,0)+' of clicks'],
+    ['Placed orders',nf(t.or),pc(t.pR,3)+' order rate'],
+    ['Revenue',eur(t.rev),eur(t.aov)+' AOV']
+  ];
+  document.getElementById('kpis').innerHTML=cards.map(c=>
+    `<div class="kpi"><div class="kpi-l">${c[0]}</div><div class="kpi-v">${c[1]}</div><div class="kpi-s">${c[2]}</div></div>`).join('');
+}
+
+/* ---------- funnel ---------- */
+function renderFunnel(t){
+  const steps=[
+    ['Delivered','emails landed',t.del,1,null,'#3a3260'],
+    ['Opened','unique',t.op,t.del?t.op/t.del:0,t.del?t.op/t.del:0,'#5a4fa0'],
+    ['Clicked','unique',t.cl,t.op?t.cl/t.op:0,t.del?t.cl/t.del:0,'#7c68e0'],
+    ['Session started','active on site',t.se,t.cl?t.se/t.cl:0,t.del?t.se/t.del:0,'#3a78c9'],
+    ['Placed order','attributed',t.or,t.se?t.or/t.se:0,t.del?t.or/t.del:0,'#1a9e78']
+  ];
+  const max=Math.max(...steps.map(s=>s[2]))||1;
+  const LOG=v=>v<=0?0:Math.pow(v/max,0.28)*100;
+  document.getElementById('funnel').innerHTML=steps.map((s,i)=>{
+    const drop=i===0?'':`<div class="fdrop">${pc(s[3],1)} of previous step</div>`;
+    const ofd=s[4]===null?'':`<div class="fpct">${pc(s[4],s[4]<0.02?3:1)} of delivered</div>`;
+    return drop+`<div class="fstep">
+      <div class="fname">${s[0]}<span>${s[1]}</span></div>
+      <div class="ftrack"><div class="fbar" style="width:${LOG(s[2])}%;background:${s[5]}"></div></div>
+      <div class="fval"><div class="fnum">${nf(s[2])}</div>${ofd}</div></div>`;
+  }).join('');
+}
+
+/* ---------- verdict ---------- */
+function renderVerdict(){
+  const base=RAW.filter(r=>r[3]==='Standard');
+  const cells=['Blended',...MKTS].map(m=>{
+    const rs=m==='Blended'?base:base.filter(r=>r[0]===m);
+    const a=sum(rs.filter(r=>r[2]==='15% off')), b=sum(rs.filter(r=>r[2]==='25% off'));
+    const z=ztest(a.or,a.del,b.or,b.del);
+    if(!z) return '';
+    const sig=z.p<0.05;
+    return `<div class="vcell">
+      <div class="vmkt">${m}</div>
+      <div class="vlift ${z.lift<0?'neg':''}">${z.lift>=0?'+':''}${(z.lift*100).toFixed(0)}%</div>
+      <div class="vsub">${pc(a.r1,3)} &rarr; ${pc(z.r2,3)}</div>
+      <div class="vp ${sig?'sig':'nsig'}">p = ${z.p<0.001?'&lt;0.001':z.p.toFixed(3)}${sig?'':' n.s.'}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('v-grid').innerHTML=cells;
+
+  const a=sum(base.filter(r=>r[2]==='15% off')), b=sum(base.filter(r=>r[2]==='25% off'));
+  const z=ztest(a.or,a.del,b.or,b.del);
+  document.getElementById('v-body').innerHTML=
+    `Across ${nf(a.del+b.del)} delivered Standard-format emails, the 25% arm placed orders at <strong>${pc(z.r2,3)}</strong> against <strong>${pc(z.r1,3)}</strong> for 15% &mdash; a <strong>${(z.lift*100).toFixed(0)}% relative lift</strong>, significant at p &lt; 0.001. `+
+    `Open rates (${pc(a.oR,1)} vs ${pc(b.oR,1)}) and click rates (${pc(a.cR,3)} vs ${pc(b.cR,3)}) are effectively identical, so the gap opens after the click, not before it. `+
+    `Revenue per recipient runs ${eur(a.rpr*1000)}/1k on 15% vs ${eur(b.rpr*1000)}/1k on 25%, with AOV only ${pc(1-b.aov/a.aov,1)} lower on the deeper discount.`;
+}
+
+/* ---------- charts ---------- */
+let charts={};
+Chart.defaults.font.family="-apple-system,BlinkMacSystemFont,'Inter',sans-serif";
+Chart.defaults.color='#8a8599';
+const GRID='rgba(255,255,255,.06)', TICK='#6b647e';
+function mk(id,cfg){ if(charts[id])charts[id].destroy(); charts[id]=new Chart(document.getElementById(id),cfg); }
+
+function renderArmChart(){
+  const base=RAW.filter(r=>r[3]==='Standard');
+  const labels=['Blended',...MKTS];
+  const d15=labels.map(m=>{const rs=m==='Blended'?base:base.filter(r=>r[0]===m);const t=sum(rs.filter(r=>r[2]==='15% off'));return +(t.pR*100).toFixed(3)});
+  const d25=labels.map(m=>{const rs=m==='Blended'?base:base.filter(r=>r[0]===m);const t=sum(rs.filter(r=>r[2]==='25% off'));return +(t.pR*100).toFixed(3)});
+  mk('c-arm',{type:'bar',data:{labels,datasets:[
+    {label:'15% off',data:d15,backgroundColor:O15+'cc',borderWidth:0,borderRadius:4},
+    {label:'25% off',data:d25,backgroundColor:O25+'cc',borderWidth:0,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y.toFixed(3)+'%'}}},
+      scales:{y:{beginAtZero:true,ticks:{callback:v=>v.toFixed(2)+'%',color:TICK,font:{size:11}},grid:{color:GRID},border:{color:'transparent'}},
+              x:{ticks:{color:TICK,font:{size:11}},grid:{display:false},border:{color:'transparent'}}}}});
+}
+function renderSeq(rs){
+  const nums=[...new Set(rs.map(r=>r[1]))].sort((a,b)=>a-b);
+  const op=[],pr=[],rec=[];
+  nums.forEach(n=>{const t=sum(rs.filter(r=>r[1]===n));op.push(+(t.oR*100).toFixed(2));pr.push(+(t.pR*100).toFixed(3));rec.push(t.rec)});
+  const labels=nums.map(n=>'#'+n);
+  mk('c-seq',{data:{labels,datasets:[
+    {type:'bar',label:'Placed order rate',data:pr,backgroundColor:'#1a9e78cc',borderWidth:0,borderRadius:4,yAxisID:'y'},
+    {type:'line',label:'Open rate',data:op,borderColor:O15,backgroundColor:O15,borderWidth:2,pointRadius:3,pointBackgroundColor:O15,tension:.3,yAxisID:'y1'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{boxWidth:10,boxHeight:10,usePointStyle:true,pointStyle:'rectRounded',font:{size:11}}},
+      tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y.toFixed(c.datasetIndex?1:3)+'%'}}},
+      scales:{y:{position:'left',beginAtZero:true,title:{display:true,text:'Order rate',font:{size:10}},ticks:{callback:v=>v.toFixed(2)+'%',color:TICK,font:{size:10}},grid:{color:GRID},border:{color:'transparent'}},
+              y1:{position:'right',beginAtZero:true,title:{display:true,text:'Open rate',font:{size:10}},ticks:{callback:v=>v.toFixed(0)+'%',color:TICK,font:{size:10}},grid:{display:false},border:{color:'transparent'}},
+              x:{ticks:{color:TICK,font:{size:11}},grid:{display:false},border:{color:'transparent'}}}}});
+  mk('c-rec',{type:'bar',data:{labels,datasets:[{label:'Unique recipients',data:rec,
+      backgroundColor:(state.mkt==='Blended'?'#5a4fa0':MC[state.mkt])+'cc',borderWidth:0,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:c=>nf(c.parsed.y)+' recipients'}}},
+      scales:{y:{beginAtZero:true,ticks:{callback:v=>v>=1000?(v/1000)+'k':v,color:TICK,font:{size:10}},grid:{color:GRID},border:{color:'transparent'}},
+              x:{ticks:{color:TICK,font:{size:11}},grid:{display:false},border:{color:'transparent'}}}}});
+}
+
+/* ---------- table ---------- */
+function val(r,k){
+  if(k==='o')return r[5]?r[6]/r[5]:0;
+  if(k==='cr')return r[5]?r[7]/r[5]:0;
+  if(k==='pr')return r[5]?r[9]/r[5]:0;
+  return r[+k];
+}
+function renderTable(rs){
+  const {k,dir}=state.sort, s=dir==='asc'?1:-1;
+  const sorted=[...rs].sort((a,b)=>{
+    const x=val(a,k),y=val(b,k);
+    if(typeof x==='string')return s*x.localeCompare(y);
+    return s*(x-y);
+  });
+  const tb=document.getElementById('tbody');
+  if(!sorted.length){tb.innerHTML='<tr><td colspan="13"><div class="empty">No sends match this filter.</div></td></tr>';}
+  else tb.innerHTML=sorted.map(r=>{
+    const oR=r[5]?r[6]/r[5]:0, cR=r[5]?r[7]/r[5]:0, pR=r[5]?r[9]/r[5]:0;
+    const op=r[2]==='25% off'?'p25':'p15';
+    return `<tr>
+      <td><span class="pill mkt">${r[0]}</span></td>
+      <td>#${r[1]}</td>
+      <td><span class="pill ${op}">${r[2]}</span></td>
+      <td><span class="short-tag">${r[3]}</span></td>
+      <td>${nf(r[4])}</td><td>${nf(r[6])}</td><td>${pc(oR,1)}</td>
+      <td>${nf(r[7])}</td><td>${pc(cR,3)}</td>
+      <td>${nf(r[8])}</td><td>${nf(r[9])}</td><td>${pc(pR,3)}</td>
+      <td>${eur(r[11])}</td></tr>`;
+  }).join('');
+  const t=sum(rs);
+  document.getElementById('tcount').textContent=
+    `${sorted.length} sends \u00b7 ${nf(t.rec)} recipients \u00b7 ${nf(t.or)} orders \u00b7 ${eur(t.rev)}`;
+  document.querySelectorAll('#tbl thead th').forEach(th=>{
+    if(th.dataset.k===String(k))th.setAttribute('data-dir',dir); else th.removeAttribute('data-dir');
+  });
+}
+
+/* ---------- render ---------- */
+function render(){
+  syncChips();
+  const rs=filtered(), t=sum(rs);
+  renderKpis(t); renderFunnel(t); renderSeq(rs); renderTable(rs);
+}
+chips(document.getElementById('f-mkt'),['Blended',...MKTS],'mkt');
+chips(document.getElementById('f-off'),['All','15% off','25% off'],'off',{'15% off':'o15','25% off':'o25'});
+chips(document.getElementById('f-fmt'),['All','Standard','SHORT'],'fmt');
+document.querySelectorAll('#tbl thead th').forEach(th=>{
+  th.onclick=()=>{
+    const k=th.dataset.k;
+    state.sort = state.sort.k===k ? {k,dir:state.sort.dir==='desc'?'asc':'desc'} : {k,dir:'desc'};
+    renderTable(filtered());
+  };
+});
+renderVerdict(); renderArmChart(); render();
+</script>
+</body>
+</html>
